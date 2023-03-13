@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: moderation-depl
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: moderation
+    template:
+        metadata:
+            name: moderation-pod
+            labels:
+                app: moderation
+        spec:
+            containers:
+                - name: moderation-containers
+                  image: lenhat509/moderation:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: moderation-srv-cip
+spec:
+    type: ClusterIP # optional
+    selector:
+        app: moderation
+    ports:
+        - name: moderation
+          protocol: TCP
+          port: 4003
+          targetPort: 4003

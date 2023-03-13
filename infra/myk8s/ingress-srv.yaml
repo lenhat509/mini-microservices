@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: ingress-srv
+    # Ingress Controller will continuously look for the config file with this exact annotations
+    # so that it can get the routing rules
+    annotations: # let Ingress Controller know that we are going to feed it some routing rules
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/use-regex: "true" # allow us to use regex
+spec:
+    rules:
+        # Ingress Engine assuming that you might be hosting many different apps at different domains.
+        - host: posts.com
+          # trick our machine to connect to "posts.com" on our local machine instead of real "posts.com" domain
+          # add "127.0.0.1 posts.com" to /etc/hosts
+          http:
+              paths: #define how to redirect incoming traffic to a specific Pod based on the request path
+                  # the paths are arranged from the most important one to the least important one
+                  # Ingress Controller will try to match the request path to the listed path from top to bottom
+                  - path: /posts/create
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: posts-srv-cip
+                            port:
+                                number: 4000
+                  - path: /posts
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: query-srv-cip
+                            port:
+                                number: 4002
+                  - path: /posts/?(.*)/comments
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: comments-srv-cip
+                            port:
+                                number: 4001
+                  - path: /?(.*)
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: client-srv-cip
+                            port:
+                                number: 3000
