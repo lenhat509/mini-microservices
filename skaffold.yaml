@@ -1,0 +1,59 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+deploy:
+    kubectl:
+        # 1. apply all config files
+        # 2. watch for any changes and reapply changes
+        # 3. delete all objects created by these config files when Skaffold stops
+        manifests:
+            - infra/k8s/*.yaml
+build:
+    # by default, Skaffold will push the image to Docker Hub every time it rebuilds a image
+    # we want to disable this behavior
+    local:
+        push: false
+    artifacts:
+        - image: lenhat509/posts
+          # whenever there is a change inside this folder, Skaffold will update the Pod
+          context: posts
+          docker:
+              dockerfile: Dockerfile
+          sync:
+              manual:
+                  # there are 2 ways to update the Pod
+                  # 1. if the change is in 'src', then update directly to the Pod
+                  # 2. if the change is outside 'src', then rebuild the image
+                  - src: "*.js"
+                    dest: .
+        - image: lenhat509/client
+          context: client
+          docker:
+              dockerfile: Dockerfile
+          sync:
+              manual:
+                  - src: "src/**/*.js"
+                    dest: .
+        - image: lenhat509/comments
+          context: comments
+          docker:
+              dockerfile: Dockerfile
+          sync:
+              manual:
+                  - src: "*.js"
+                    dest: .
+        - image: lenhat509/query
+          context: query
+          docker:
+              dockerfile: Dockerfile
+          sync:
+              manual:
+                  - src: "*.js"
+                    dest: .
+        - image: lenhat509/moderation
+          context: moderation
+          docker:
+              dockerfile: Dockerfile
+          sync:
+              manual:
+                  - src: "*.js"
+                    dest: .
